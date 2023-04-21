@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Simulation and Data Visualisation Website</title>
+    <style>
+        body {
+            background-color: #F0F8FF;
+        }
+
+        #container {
+            width: 1000px;
+            margin: auto;
+        }
+
+
+        .chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+        }
+
+        #tooltip {
+            position: absolute;
+            font-size: 12px;
+            border-radius: 5px;
+            background-color: rgb(104, 104, 104);
+            /* height: 20px; */
+            color: white;
+            padding: 5px;
+            display: none;
+        
+        }
+        #fonts{
+            text-align: center;
+
+        }
+        #fonts2{
+            text-align: center;
+            color: #5fbdc2;
+        }
+        #fonts3{
+            text-align: center;
+            color: #2f4d73;
+        }
+        #fonts4{
+            text-align: center;
+            color: #025301;
+        }
+        #Radar_chart{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+        }
+        #click_button{
+            align-items: center;
+        }
+
+
+        .button {
+        display: inline-block;
+        padding: 12px 20px; 
+        font-size: 16px; 
+        font-weight: bold; 
+        text-align: center;
+        text-decoration: none;
+        background-color: #A2D9CE; 
+        color: #033500; 
+        border: none;
+        border-radius: 4px; 
+        cursor: pointer; 
+        align-items: center;
+        }
+
+        .button:hover {
+        background-color: #007616;
+        }
+
+        .button:focus {
+        outline: none; 
+        box-shadow: 0 0 0 3px rgba(11, 95, 0, 0.5); 
+        }
+
+        .button:active {
+        background-color: #005f15; 
+        }
+
+    </style>
+</head>
+
+
+
+
+
+<body>
+    <h1 id = "fonts">Simulation and Data Visualisation Website</h1>
+    <h2 id = "fonts">Social media effect and influence </h2>
+    <h3 id = "fonts">Author: Yongqi Du</h3>
+    <h3 id = "fonts">Student ID: K1897743</h3>
+    <br>
+    <br>
+
+
+
+
+
+
+
+    <h2 id = "fonts2">Q1-Analyse the effect of social media influence on shopping. <br> Are there detectable trends? </h2>
+    <br>
+    <div id="chart1" class="chart"></div>
+    <div id="chart1" class="chart"><button class = "button" id="click_button">Hierarchical clustering</button></div><br>
+    <br>
+    <h2 id = "fonts3">Q2-Analyse the effect of social media influence on gender and different income group.<br> Are there any observable differences and relevant potential <br>impact  on gender and different income groups?</h2>
+    <br>
+    <div id="chart2" class="chart"></div><br>
+    <div id="chart5" class="chart"></div>
+    <h2 id = "fonts4">Q3-Analyse the effects of social media influence on student about gaps of grade<br>  and graduated period between 2017 and 2020.<br>  Are there any significant differences and potential positive or negative<br>  relevant impact on grade and generation?</h2>
+    <br>
+    <div id="chart3" class="chart"></div><br>
+    <br>
+    <div id="chart4" class="chart"></div>
+    <br>
+    <br>
+    <br>
+    <h1 id = "fonts">Data Processing:</h1>
+    <h2 id = "fonts">The data from question 1 to question 3 were  mainly processed from the dataset "<a href = "https://data.world/ahalps/social-influence-on-shopping">Social Influence on Shopping</a>" which can be download from the link.
+        <br>  Another two useful dataset was used to form the some labels and deliver some another insight for this simulation and Data visualisation website.
+        <br>The dataset was processed by JavaScript and use the D3.js library which is commonly used for data visualization in JavaScript,
+        <br>and the d3.csv() function is used to load data from a CSV file, and filtering it based on the value of the "Segment Type" column equaling typing words.
+    </h2>
+    <br>
+    <br>
+    <h2 id = "fonts">Ackowledgement</h2>
+    <h3 id = "fonts">Main dataset sources:</h3>
+    <h3 id = "fonts"><a href = "https://data.world/ahalps/social-influence-on-shopping">Social Influence on Shopping</a></h3>
+    <h3 id = "fonts">Other useful dataset sources:</h3>
+    <h3 id = "fonts"><a href = "https://data.world/ahalps/online-influencer-marketing">Thought Catalog Influencers</a></h3>
+    <h3 id = "fonts"><a href = "https://data.world/ahalps/which-social-media-millennials-care-about-most">Which Social Media Millennials Care About Most</a></h3>
+    <h3 id = "fonts">Other useful sources:</h3>
+    <h3 id = "fonts"><a href = "https://miro.com/app/board/uXjVMQ53xaI=/?share_link_id=366197452494">inspiration</a></h3>
+    <div id="container"> </div>
+    <div id="tooltip"></div>
+
+
+
+    <script>
+
+        const keys = ["Facebook", "Instagram", "Snapchat", "Twitter", "None"];
+        d3.csv("./Dataset/Social_Influence_on_Shopping2.csv").then(res => {
+            Radar_chart(res);
+            line_chart(res);
+            Bar_chart(res);
+            Pie_chart(res);
+        })
+
+        function Radar_chart(res) {
+            const width = 850, height = 400;
+            const svg = d3.select("#chart2")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            svg.append("text")
+                .attr("y", 20)
+                .attr("x", 15)
+                .text("Radar chart : Gender [Female, Male]")
+            let data = res.filter(d => d["Segment Type"] == "Gender");
+
+            let arr = d3.groups(data, d => d["Segment Description"]).map(d => {
+                let obj = {}
+                obj.id = d[0];
+                d[1].forEach(v => {
+                    obj[v.Answer] = v.Count;
+                })
+                return obj
+            })
+
+            const r = d3.scaleLinear([0, d3.max(data, d => Number(d.Count))], [0, 140]).nice();
+            var point_num = 5;
+            let angles = d3.range(0, 2 * Math.PI, 2 * Math.PI / point_num);
+            let line = d3.lineRadial()
+                .curve(d3.curveLinearClosed)
+                .angle((d, i) => {
+                    return 2 * Math.PI / point_num * i
+                })
+                .radius(([key, value]) => {
+                    return r(value);
+                });
+
+            let g = svg.append("g")
+                .attr("id", "chart")
+                .attr("transform", "translate(0,0)");
+            initRadarChart(g, r)
+            g.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("path")
+                .data([arr[0]])
+                .join("path")
+                .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])))
+                .attr("stroke", "#1f77b4")
+                .attr("stroke-width", 1)
+                .attr("fill", "#FFCC4C")
+                .attr("fill-opacity", "0.6")
+                .style("cursor", "pointer")
+
+                .on("mousemove", (e, d) => {
+                    d3.select(e.target)
+                        .attr("fill-opacity", "0.8")
+                    d3.select("#tooltip")
+                        .style("display", "block")
+                        .style("left", e.pageX + 10 + "px")
+                        .style("top", e.pageY + "px")
+                        .html(
+                            `
+                            Gender: ${d.id.split(" ")[0]}
+                            <br />
+                            Facebook: ${d.Facebook}
+                            <br />
+                            Instagram: ${d.Instagram}
+                            <br />
+                            Snapchat: ${d.Snapchat}
+                            <br />
+                            Twitter: ${d.Twitter}
+                            <br />
+                            None: ${d.None}
+                            <br />
+                            `
+                        )
+                })
+
+                .on("mouseleave", (e, d) => {
+                    d3.select(e.target)
+                        .attr("fill-opacity", "0.6")
+                    d3.select("#tooltip")
+                        .style("display", "none")
+                })
+
+
+            g.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("g")
+                .data([arr[0]])
+                .join("g")
+                .selectAll("circle")
+                .data(d => d3.cross(keys, [d], (key, d) => [key, d[key]]))
+                .join("circle")
+                .attr("cx", ([key, value], i) => Math.cos(2 * Math.PI / point_num * i - Math.PI / 2) * r(value))
+                .attr("cy", ([key, value], i) => Math.sin(2 * Math.PI / point_num * i - Math.PI / 2) * r(value))
+                .attr("r", 4)
+                .attr("stroke", "#1f77b4")
+                .attr("fill", "white");
+
+            let g1 = svg.append("g")
+                .attr("id", "chart")
+                .attr("transform", "translate(450,0)");
+            initRadarChart(g1, r)
+
+            g1.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("path")
+                .data([arr[1]])
+                .join("path")
+                .attr("d", d => line(d3.cross(keys, [d], (key, d) => [key, d[key]])))
+                .attr("stroke", "#1f77b4")
+                .attr("stroke-width", 1)
+                .attr("fill", "#4CC1EF")
+                .attr("fill-opacity", "0.6")
+                .style("cursor", "pointer")
+                .on("mousemove", (e, d) => {
+                    d3.select(e.target)
+                        .attr("fill-opacity", "0.8")
+                    d3.select("#tooltip")
+                        .style("display", "block")
+                        .style("left", e.pageX + 10 + "px")
+                        .style("top", e.pageY + "px")
+                        .html(
+                            `
+                            Gender: ${d.id.split(" ")[0]}
+                            <br />
+                            Facebook: ${d.Facebook}
+                            <br />
+                            Instagram: ${d.Instagram}
+                            <br />
+                            Snapchat: ${d.Snapchat}
+                            <br />
+                            Twitter: ${d.Twitter}
+                            <br />
+                            None: ${d.None}
+                            <br />
+                            `
+                        )
+                })
+
+                .on("mouseleave", (e, d) => {
+                    d3.select(e.target)
+                        .attr("fill-opacity", "0.6")
+                    d3.select("#tooltip")
+                        .style("display", "none")
+                })
+            g1.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("g")
+                .data([arr[1]])
+                .join("g")
+                .selectAll("circle")
+                .data(d => d3.cross(keys, [d], (key, d) => [key, d[key]]))
+                .join("circle")
+                .attr("cx", ([key, value], i) => Math.cos(2 * Math.PI / point_num * i - Math.PI / 2) * r(value))
+                .attr("cy", ([key, value], i) => Math.sin(2 * Math.PI / point_num * i - Math.PI / 2) * r(value))
+                .attr("r", 4)
+                .attr("stroke", "#1f77b4")
+                .attr("fill", "white");
+        }
+
+        function line_chart(res) {
+            const width = 850, height = 450;
+            const margin = {
+                left: 50,
+                right: 50,
+                top: 55,
+                bottom: 50
+            }
+            const svg = d3.select("#chart3")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            svg.append("text")
+                .attr("y", 20)
+                .attr("x", 15)
+                .text("Line chart: GPA")
+            let data = res.filter(d => d["Segment Description"].startsWith("What's your GPA?"));
+            let groups = d3.groups(data, d => d["Segment Description"]);
+            let color = d3.scaleOrdinal()
+                .domain(groups.map(d => d[0]))
+                .range(["#82b4bd", "#98bbd6", "#7daac7", "#afdbd7","#2f4d73"]);
+            svg.append("g")
+                .attr("font-size", 12)
+                .attr("transform", `translate(${margin.left}, 20)`)
+                .call(g => {
+                    g.selectAll("circle")
+                        .data(color.domain())
+                        .join("circle")
+                        .attr("fill", d => color(d))
+                        .attr("cx", (d, i) => i * 80)
+                        .attr("cy", 15)
+                        .attr("r", 6);
+                    g.selectAll("text")
+                        .data(color.domain())
+                        .join("text")
+                        .attr("x", (d, i) => i * 80 + 8)
+                        .attr("y", 15)
+                        .attr("dy", "0.3em")
+                        .text(d => d.split("?")[1])
+                })
+
+            let x = d3.scalePoint()
+                .domain(keys)
+                .range([margin.left, width - margin.right]);
+            let y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => Number(d.Count))])
+                .range([height - margin.bottom, margin.top]);
+            let line = d3.line()
+                .x(d => x(d.Answer))
+                .y(d => y(d.Count));
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x));
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .selectAll("image")
+                .data(keys)
+                .enter()
+                .append("image")
+                .attr("width", 30)
+                .attr("x", d => x(d) - 15)
+                .attr("y", 20)
+                .attr("href", (d, i) => `./Icon/${keys[i]}.png`)
+            svg.append("g")
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y));
+            let gs = svg.append("g")
+                .selectAll("g")
+                .data(groups)
+                .join("g")
+                .attr("stroke", d => color(d[0]))
+                .attr("fill", d => color(d[0]));
+            gs.append("path")
+                .datum(d => d[1])
+                .join("path")
+                .attr("d", line)
+                .attr("fill", "none")
+                .attr("stroke-width", 1.5);
+            gs.selectAll("circle")
+                .data(d => d[1])
+                .join("circle")
+                .attr("cx", d => x(d.Answer))
+                .attr("cy", d => y(d.Count))
+                .attr("r", 3)
+                .style("cursor", "pointer")
+                .on("mousemove", (e, d) => {
+                    console.log(d)
+                    d3.select(e.target)
+                        .attr("r", "5")
+                    d3.select("#tooltip")
+                        .style("display", "block")
+                        .style("left", e.pageX + 10 + "px")
+                        .style("top", e.pageY + "px")
+                        .html(
+                            `
+                        GPA: ${d["Segment Description"].split("? ")[1]}
+                        <br />
+                        ${d.Answer}: ${d.Percentage}
+                        <br />
+                        `
+                        )
+                })
+                .on("mouseleave", (e, d) => {
+                    d3.select(e.target)
+                        .attr("r", "3")
+                    d3.select("#tooltip")
+                        .style("display", "none")
+                })
+        }
+
+        function Bar_chart(res) {
+            // Graduation Year
+            const width = 850, height = 450;
+            const margin = {
+                left: 50,
+                right: 50,
+                top: 80,
+                bottom: 30
+            }
+            const svg = d3.select("#chart4")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            svg.append("text")
+                .attr("y", 20)
+                .attr("x", 15)
+                .text("Bar chart: Graduated period between 2017 and 2020")
+            let data = res.filter(d => d["Segment Description"].startsWith("Graduation Year"));
+            let groups = d3.groups(data, d => d["Segment Description"]);
+            let color = d3.scaleOrdinal()
+                .domain(["Twitter", "Snapchat", "Instagram", "Facebook","None"])
+                .range(["#82b4bd", "#98bbd6", "#7daac7", "#afdbd7","#2f4d73"]);
+
+            svg.append("g")
+                .attr("transform", `translate(${margin.left}, 10)`)
+                .selectAll("rect")
+                .data(color.domain())
+                .join("rect")
+                .attr("x", (d, i) => i * 80)
+                .attr("y", 30)
+                .attr("width", 20)
+                .attr("height", 20)
+                .attr("fill", d => color(d))
+            svg.append("g")
+                .attr("font-size", 12)
+                .attr("transform", `translate(${margin.left}, 10)`)
+                .selectAll("text")
+                .data(color.domain())
+                .join("text")
+                .attr("x", (d, i) => i * 80 + 22)
+                .attr("y", 40)
+                .attr("dy", "0.3em")
+                .text(d => d)
+            let x = d3.scaleBand()
+                .domain(groups.map(d => d[0]))
+                .range([margin.left, width - margin.right])
+                .padding(0.3);
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x))
+                .call(g => {
+                    g.selectAll("line").remove()
+                })
+            let y = d3.scaleLinear()
+                .domain([0, 1])
+                .range([height - margin.bottom, margin.top]);
+            svg.append("g")
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y).tickFormat(d => d * 100 + "%"))
+                .call(g => {
+                    g.select("path").remove()
+                });
+            svg.append("g")
+                .selectAll("g")
+                .data(groups)
+                .join("g")
+                .attr("transform", d => `translate(${x(d[0])},0)`)
+                .each((d, i, gs) => {
+                    let sum = 0;
+                    d[1].forEach(o => {
+                        d3.select(gs[i]).append("rect")
+                            .attr("width", x.bandwidth())
+                            .attr("height", y(sum) - y(sum + Number(o.Percentage)))
+                            .attr("y", y(sum + Number(o.Percentage)))
+                            .attr("fill", color(o.Answer))
+                            .style("cursor", "pointer")
+                            .on("mousemove", (e, d) => {
+                                d3.select("#tooltip")
+                                    .style("display", "block")
+                                    .style("left", e.pageX + 10 + "px")
+                                    .style("top", e.pageY + "px")
+                                    .html(`
+                                        Graduation Year: ${o["Segment Description"].split("Graduation Year ")[1]}
+                                        <br />
+                                        ${o.Answer}: ${o.Count}: ${o.Percentage}
+                                        <br />`
+                                    )
+                            })
+                            .on("mouseleave", (e, d) => {
+                                d3.select(e.target)
+                                    .attr("r", "3")
+                                d3.select("#tooltip")
+                                    .style("display", "none")
+                            })
+                        sum += Number(o.Percentage);
+                    })
+
+                })
+        }
+
+        function Pie_chart(res) {
+            const width = 1000, height = 450;
+            const margin = {
+                left: 50,
+                right: 50,
+                top: 80,
+                bottom: 30
+            }
+            const svg = d3.select("#chart5")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            svg.append("text")
+                .attr("y", 20)
+                .attr("x", 15)
+                .text("Pie chart: Income [Upper class, Upper-middle class, Middle/lower-middle class, Poor]")
+
+            let data = res.filter(d => d["Segment Description"].startsWith("your parents make?"));
+            let groups = d3.groups(data, d => d["Segment Description"]);
+            let color = d3.scaleOrdinal()
+                .domain(["Twitter", "Snapchat", "Instagram", "Facebook","None"])
+                .range(["#82b4bd", "#98bbd6", "#7daac7", "#afdbd7","#2f4d73"]);
+
+            svg.append("g")
+                .attr("transform", `translate(${margin.left}, 10)`)
+                .selectAll("rect")
+                .data(color.domain())
+                .join("rect")
+                .attr("x", (d, i) => i * 80)
+                .attr("y", 30)
+                .attr("width", 20)
+                .attr("height", 20)
+                .attr("fill", d => color(d))
+            svg.append("g")
+                .attr("font-size", 12)
+                .attr("transform", `translate(${margin.left}, 10)`)
+                .selectAll("text")
+                .data(color.domain())
+                .join("text")
+                .attr("x", (d, i) => i * 80 + 22)
+                .attr("y", 40)
+                .attr("dy", "0.3em")
+                .text(d => d)
+            const arc = d3.arc()
+                .innerRadius(45)
+                .outerRadius(70);
+            const arc1 = d3.arc()
+                .innerRadius(45)
+                .outerRadius(75);
+            const arc2 = d3.arc()
+                .innerRadius(45)
+                .outerRadius(145);
+            groups.forEach(([key, arr], i) => {
+                const pieData = d3.pie()
+                    .value(d => d.Count)
+                    (arr);
+                let g = svg.append("g")
+                    .attr("transform", `translate(${i * 240 + 125},${height / 2})`);
+                g.append("text")
+                    .attr("y", 100)
+                    .attr("font-size", 12)
+                    .attr("text-anchor", "middle")
+                    .text(key.split("your parents make? ")[1])
+                g.append("g")
+                    .selectAll("path")
+                    .data(pieData)
+                    .join("path")
+                    .attr("fill", "none")
+                    .attr("stroke", (d, i) => "#aaa")
+                    .attr("d", d => {
+                        let [x, y] = arc.centroid(d);
+                        let [x1, y1] = arc2.centroid(d);
+                        if (x > x1) {
+                            return `M${x},${y}L${x1},${y1}L${x1 - 5},${y1}`
+                        }
+                        return `M${x},${y}L${x1},${y1}L${x1 + 5},${y1}`
+                    })
+                g.append("g")
+                    .attr("font-size", 12)
+                    .selectAll("text")
+                    .data(pieData)
+                    .join("text")
+                    .attr("text-anchor", d => {
+                        let [x, y] = arc.centroid(d);
+                        let [x1, y1] = arc2.centroid(d);
+                        if (x > x1) {
+                            return "end"
+                        }
+                        return "start"
+                    })
+                    .attr("fill", "#aaa")
+                    .attr("x", d => {
+                        let [x, y] = arc.centroid(d);
+                        let [x1, y1] = arc2.centroid(d);
+                        if (x > x1) {
+                            return x1 - 6
+                        }
+                        return x1 + 6;
+                    })
+                    .attr("y", d => {
+                        let [x1, y1] = arc2.centroid(d);
+                        return y1 + 5;
+                    })
+                    .text(d => d.data.Percentage)
+                g.append("g")
+                    .selectAll("path")
+                    .data(pieData)
+                    .join("path")
+                    .attr("d", arc)
+                    .attr("fill", (d, i) => color(d.data.Answer))
+                    .style("cursor", "pointer")
+                    .on("mousemove", (e, d) => {
+                        d3.select(e.target)
+                            .attr("d", arc1)
+                        d3.select("#tooltip")
+                            .style("display", "block")
+                            .style("left", e.pageX + 10 + "px")
+                            .style("top", e.pageY + "px")
+                            .html(`
+                                parents make: ${d.data["Segment Description"].split("your parents make? ")[1]}
+                                <br />
+                                ${d.data.Answer}: ${d.data.Percentage}: ${d.data.Count}
+                                <br />`
+                            )
+                    })
+                    .on("mouseleave", (e, d) => {
+                        d3.select(e.target)
+                            .attr("d", arc)
+                        d3.select("#tooltip")
+                            .style("display", "none")
+                    })
+            })
+
+        }
+
+
+        function initRadarChart(g, r) {
+            var point_num = 5;
+            var circle_num = 4;
+            var step = 35;
+            let angles = d3.range(0, 2 * Math.PI, 2 * Math.PI / point_num);
+            let scale = d3.scaleLinear()
+                .domain([0, 200])
+                .range([0, circle_num * step]);
+
+            for (var i = 1; i <= circle_num; i++) {
+                let line = d3.lineRadial()
+                    .curve(d3.curveLinearClosed)
+                    .angle((d, j) => {
+                        return d
+                    })
+                    .radius((d) => {
+                        return step * i;
+                    })
+                g.append("text")
+                    .attr("font-size", 10)
+                    .attr("x", 190)
+                    .attr("y", 200)
+                    .attr("transform", d => `rotate(${- 0.3 * 180 / Math.PI}, 190 200)  translate(${step * i},0)`)
+                    .text(r.invert(step * i))
+
+                g.append("g")
+                    .attr("transform", "translate(200,200)")
+                    .append("path")
+                    .attr("d", line(angles))
+                    .attr("stroke", "#aaa")
+                    .attr("stroke-width", 1)
+                    .attr("stroke-dasharray", "10 5")
+                    .attr("fill", "none");
+            }
+
+            g.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("polyline")
+                .data(angles)
+                .enter()
+                .append("polyline")
+                .attr("points", function (d, i) {
+                    let r = circle_num * step,
+                        x = r * Math.cos(d - Math.PI / 2),
+                        y = r * Math.sin(d - Math.PI / 2);
+                    return `0,0 ${x},${y}`
+                })
+                .attr("stroke", "#aaa")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "10 5");
+            g.append("g")
+                .attr("transform", "translate(200,200)")
+                .selectAll("image")
+                .data(angles)
+                .enter()
+                .append("image")
+                .attr("width", 30)
+                .attr("transform", function (d, i) {
+                    d -= Math.PI / 2;
+                    let r = circle_num * step,
+                        x = r * Math.cos(d);
+                    y = r * Math.sin(d);
+                    return `translate(${x - 15},${y - 15})`;
+                })
+                .attr("href", (d, i) => `./Icon/${keys[i]}.png`)
+
+        }
+    </script>
+    
+    <script >
+
+        const data = [
+        {Keyname: "Instagram", count: 916, radius: 30, percentage: 20.5},
+        {Keyname: "Facebook", count: 548, radius: 25, percentage: 34.2},
+        {Keyname: "Twitter", count: 179, radius: 18, percentage: 3.2},
+        {Keyname: "Snapchat", count: 86, radius: 10, percentage: 0.7},
+        {Keyname: "None", count: 947, radius: 40, percentage: 35.4},
+        ];
+
+
+        const width2 = 400;
+        const height2 = 300;
+        const svg2 = d3.select("#chart1")
+        .append("svg")
+        .attr("width", 850)
+        .attr("height", 150);
+
+        const queueline = d3.forceSimulation(data)
+            .force("charge", d3.forceManyBody().strength(30))
+            .force("center", d3.forceCenter(width2 / 1, height2 / 4))
+            .force("collision", d3.forceCollide().radius(d => d.radius))
+            .on("tick", ticked);
+
+
+        const bubbles = svg2.selectAll("circle")
+        .data(data)
+        .join("circle")
+        .attr("r", d => d.radius)
+        .attr("fill", "#A2D9CE") 
+
+        .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended))
+        .on("click", displayDetails);
+
+
+        function ticked() {
+        bubbles
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+        }
+
+        function dragstarted(event, d) {
+        if (!event.active) queueline.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+        if (!event.active) queueline.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+        }
+
+        function displayDetails(event, d) {
+        alert(`Social media: ${d.Keyname}\n Users Count: ${d.count}\n Percentage: ${d.percentage}`);
+        }
+
+        function checkPercentage() {
+        queueline
+            .force("x", d3.forceX(d => (data.sort((a, b) => b.count - a.count).indexOf(d) % 10) * 80 + 40))
+            .force("y", d3.forceY(d => Math.floor(data.sort((a, b) => b.count - a.count).indexOf(d) / 10) * 80 + 40))
+            .alphaTarget(1)
+            .restart();
+        }
+
+        document.getElementById("click_button").addEventListener("click",checkPercentage)
+        document.getElementById("click_button2").addEventListener("click",selectAll("circle"))
+
+    </script>
+
+
+</body>
+
+</html>
